@@ -1,11 +1,9 @@
-FROM node:22
+FROM node:22-slim
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends ca-certificates curl && \
     update-ca-certificates && \
     rm -rf /var/lib/apt/lists/*
-
-ENV NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt
 
 WORKDIR /app
 COPY . .
