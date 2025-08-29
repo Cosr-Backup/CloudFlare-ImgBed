@@ -277,6 +277,8 @@ async function handleTelegramChunkedFile(context, imgRecord, encodedFileName, fi
                 headers,
             });
         } else {
+            headers.set('Cache-Control', 'no-store'); // 不缓存完整文件，避免 CDN 不支持 Range 请求
+            
             return new Response(stream, {
                 status: 200,
                 headers,
