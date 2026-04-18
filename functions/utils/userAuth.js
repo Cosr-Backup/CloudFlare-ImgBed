@@ -1,8 +1,6 @@
 import { fetchSecurityConfig } from './sysConfig';
 import { validateApiToken } from './tokenValidator';
 import { getDatabase } from './databaseAdapter.js';
-import { verifyPassword } from './passwordHash.js';
-import { validateSession } from './sessionManager.js';
 
 /** 
  * 客户端用户认证
@@ -13,17 +11,7 @@ import { validateSession } from './sessionManager.js';
  * @return {Promise<boolean>} 返回是否认证通过
  */
 export async function userAuthCheck(env, url, request, requiredPermission = null) {
-    // 首先检查会话 Cookie（user 或 admin 都可以通过用户端认证）
-    const userSession = await validateSession(env, request, 'user');
-    if (userSession.valid) {
-        return true;
-    }
-    const adminSession = await validateSession(env, request, 'admin');
-    if (adminSession.valid) {
-        return true;
-    }
-
-    // 然后使用Token验证
+    // 首先使用Token验证
     const tokenValidation = await validateApiToken(request, getDatabase(env), requiredPermission);
     if (tokenValidation.valid) {
         return true;
@@ -62,7 +50,7 @@ export async function userAuthCheck(env, url, request, requiredPermission = null
         }
     }
 
-    if (isAuthCodeDefined(rightAuthCode) && !(await isValidAuthCode(rightAuthCode, authCode))) {
+    if (isAuthCodeDefined(rightAuthCode) && !isValidAuthCode(rightAuthCode, authCode)) {
         return false;
     }
 
@@ -84,9 +72,8 @@ export function UnauthorizedResponse(reason) {
     });
 }
 
-async function isValidAuthCode(rightAuthCode, authCode) {
-    if (!authCode) return false;
-    return await verifyPassword(authCode, rightAuthCode);
+function isValidAuthCode(rightAuthCode, authCode) {
+    return authCode === rightAuthCode;
 }
 
 function isAuthCodeDefined(authCode) {
